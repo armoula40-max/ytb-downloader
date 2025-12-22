@@ -1,0 +1,25 @@
+# n8n with yt-dlp using pipx
+FROM n8nio/n8n:latest
+
+# Switch to root user
+USER root
+
+# Install Python3 and system dependencies
+RUN if command -v apk &> /dev/null; then \
+        apk add --no-cache python3 py3-pip ffmpeg curl build-base python3-dev; \
+    else \
+        apt-get update && apt-get install -y python3 python3-pip python3-venv ffmpeg curl && rm -rf /var/lib/apt/lists/*; \
+    fi
+
+# Create Python virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install yt-dlp in virtual environment
+RUN pip install --no-cache-dir -U yt-dlp
+
+# Switch back to node user
+USER node
+
+# Verify installation
+RUN yt-dlp --version

@@ -1,0 +1,22 @@
+# n8n with yt-dlp (Alpine-based)
+FROM n8nio/n8n:latest
+
+# Switch to root user
+USER root
+
+# Install Python3, pip, ffmpeg, and build dependencies
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    ffmpeg \
+    build-base \
+    python3-dev
+
+# Install yt-dlp using pip
+RUN python3 -m pip install --break-system-packages -U yt-dlp
+
+# Switch back to node user
+USER node
+
+# Verify installation
+RUN yt-dlp --version
