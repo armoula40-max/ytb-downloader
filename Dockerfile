@@ -1,21 +1,25 @@
-# n8n with yt-dlp (Debian-based)
 FROM n8nio/n8n:latest
 
-# Switch to root user
 USER root
 
-# Install Python3, pip, and yt-dlp (for Debian-based images)
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+# التحقق التلقائي من نوع النظام وتثبيت المتطلبات
+RUN if command -v apk >/dev/null 2>&1; then \
+        apk add --no-cache python3 py3-pip ffmpeg curl build-base python3-dev; \
+    else \
+        apt-get update && \
+        apt-get install -y --no-install-recommends python3 python3-pip python3-venv ffmpeg curl && \
+        rm -rf /var/lib/apt/lists/*; \
+    fi
 
-# Install yt-dlp using pip
-RUN pip3 install --break-system-packages -U yt-dlp
+# إنشاء بيئة Python افتراضية (يحل مشاكل externally-managed-environment)
+RUN python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install --no-cache-dir -U pip && \
+    /opt/venv/bin/pip install --no-cache-dir -U yt-dlp
 
-# Switch back to node user
+# إضافة yt-dlp إلى PATH
+ENV PATH="/opt/venv/bin:$PATH"
+
 USER node
 
-# Verify installation
+# التحقق من التثبيت
 RUN yt-dlp --version
